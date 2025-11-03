@@ -10,8 +10,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const response = await fetch("/activities");
       const activities = await response.json();
 
-      // Clear loading message
+      // Clear loading message / list
       activitiesList.innerHTML = "";
+
+      // Clear select options but keep default placeholder
+      activitySelect.innerHTML = '<option value="">-- Select an activity --</option>';
 
       // Populate activities list
       Object.entries(activities).forEach(([name, details]) => {
@@ -20,6 +23,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const spotsLeft = details.max_participants - details.participants.length;
 
+        // Build participants list, show friendly message if empty
+        const participantsHtml = details.participants && details.participants.length
+          ? details.participants.map(participant => `<li>${participant}</li>`).join('')
+          : `<li class="no-participants">No participants yet</li>`;
+
         activityCard.innerHTML = `
           <h4>${name}</h4>
           <p>${details.description}</p>
@@ -27,7 +35,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
           <p><strong>Participants:</strong></p>
           <ul>
-            ${details.participants.map(participant => `<li>${participant}</li>`).join('')}
+            ${participantsHtml}
           </ul>
         `;
 
@@ -62,25 +70,32 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const result = await response.json();
 
+      // clear prior status classes but keep "message" class
+      messageDiv.classList.remove("hidden", "success", "error", "info");
+      messageDiv.classList.add("message");
+
       if (response.ok) {
         messageDiv.textContent = result.message;
-        messageDiv.className = "success";
+        messageDiv.classList.add("success");
         signupForm.reset();
+
+        // Refresh activities so participants list updates immediately
+        await fetchActivities();
       } else {
         messageDiv.textContent = result.detail || "An error occurred";
-        messageDiv.className = "error";
+        messageDiv.classList.add("error");
       }
 
       messageDiv.classList.remove("hidden");
 
-      // Hide message after 5 seconds
+      // Hide message after 5 seconds (keep message classes for next time)
       setTimeout(() => {
         messageDiv.classList.add("hidden");
       }, 5000);
     } catch (error) {
+      messageDiv.classList.remove("hidden", "success", "error", "info");
+      messageDiv.classList.add("message", "error");
       messageDiv.textContent = "Failed to sign up. Please try again.";
-      messageDiv.className = "error";
-      messageDiv.classList.remove("hidden");
       console.error("Error signing up:", error);
     }
   });

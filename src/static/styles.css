@@ -81,6 +81,14 @@ section h3 {
   color: #555;
 }
 
+.activity-card .no-participants {
+  color: #888;
+  font-style: italic;
+  margin-left: 0;
+  list-style-type: none;
+  padding-left: 0;
+}
+
 .form-group {
   margin-bottom: 15px;
 }
